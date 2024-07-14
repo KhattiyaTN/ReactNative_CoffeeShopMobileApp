@@ -4,7 +4,6 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CoffeeData from "../data/CoffeeData";
 import BeansData from "../data/BeansData";
-import FavoritesScreen from "../screens/FavoritesScreen";
 
 export const useStore = create(
     persist(
@@ -16,6 +15,8 @@ export const useStore = create(
             CartList: [],
             OrderHistoryList: [],
 
+            // เพิ่มสินค้าลงใน CartList โดยตรวจสอบว่า id ของสินค้าและ size ของราคามีอยู่ใน CartList แล้วหรือไม่ 
+            // หากมีอยู่จะเพิ่มจำนวน (quantity) หากไม่มีจะเพิ่มรายการราคาใหม่
             addToCart: (cartItem: any) => set(produce(state => {
                 let found = false;
                 for (let i = 0; i<state.CartList.length; i++) {
@@ -50,6 +51,7 @@ export const useStore = create(
             }),
         ),
 
+        // ฟังก์ชันนี้คำนวณราคาทั้งหมดของสินค้าที่อยู่ใน CartList และอัพเดต CartPrice
         CalculateCartPrice: () => set(produce(state => {
             let totalprice = 0;
             for(let i = 0; i < state.CartList.length; i++) {
@@ -65,13 +67,15 @@ export const useStore = create(
             state.CartPrice = totalprice.toFixed(2).toString();
         })),
 
-        addToFaveriteList: (type: string, id: string) =>
+        // เพิ่มสินค้าลงใน FavoritesList โดยตรวจสอบประเภท (type) ของสินค้าและ id ของสินค้า 
+        // หากพบสินค้าที่มี id ตรงกันและยังไม่เป็น favorite จะตั้งค่า favorite เป็น true และเพิ่มสินค้านั้นลงใน FavoritesList
+        addToFavoriteList: (type: string, id: string) =>
             set(produce(state => {
                 if(type == "Coffee") {
                     for(let i = 0; i < state.CoffeeList.length; i++) {
                         if(state.CoffeeList[i].id == id) {
-                            if(state.CoffeeList[i].favorite == false) {
-                                state.CoffeeList[i].favorite == true;
+                            if(state.CoffeeList[i].favourite == false) {
+                                state.CoffeeList[i].favourite = true;
                                 state.FavoritesList.unshift(state.CoffeeList[i]);
                             }
                             break;
@@ -80,8 +84,8 @@ export const useStore = create(
                 } else if (type == 'Bean') {
                     for(let i = 0; i < state.BeanList.length; i++) {
                         if(state.BeanList[i].id == id) {
-                            if(state.BeanList[i].favorite == false) {
-                                state.BeanList[i].favorite == true;
+                            if(state.BeanList[i].favourite == false) {
+                                state.BeanList[i].favourite = true;
                                 state.FavoritesList.unshift(state.BeanList[i]);
                             }
                             break;
@@ -90,12 +94,14 @@ export const useStore = create(
                 }
             })), 
 
+            // ฟังก์ชันนี้ลบสินค้าจาก FavoritesList โดยตรวจสอบประเภท (type) ของสินค้าและ id ของสินค้า 
+            // หากพบสินค้าที่มี id ตรงกันและเป็น favorite จะตั้งค่า favorite เป็น false และลบสินค้านั้นออกจาก FavoritesList
             deleteFromFavoriteList: (type: string, id: string) => set(produce(state => {
                 if(type == 'Coffee') {
                     for(let i = 0; i < state.CoffeeList.length; i++) {
                         if(state.CoffeeList[i].id == id) {
-                            if(state.CoffeeList[i].favorite == true) {
-                                state.CoffeeList[i].favorite == false;
+                            if(state.CoffeeList[i].favourite == true) {
+                                state.CoffeeList[i].favourite = false;
                             }
                             break;
                         }
@@ -103,8 +109,8 @@ export const useStore = create(
                 } else if(type == 'Beans') {
                     for(let i = 0; i < state.BeanList.length; i++) {
                         if(state.BeanList[i].id == id) {
-                            if(state.BeanList[i].favorite == true) {
-                                state.BeanList[i].favorite == false;
+                            if(state.BeanList[i].favourite == true) {
+                                state.BeanList[i].favourite = false;
                             }
                             break;
                         }
